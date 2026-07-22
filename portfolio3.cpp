@@ -1386,6 +1386,29 @@ string map[7] =
     }
 }
 
+//OUTSIDE STURCTURE
+struct Door
+{
+    int row;
+    int col;
+    int group;
+};
+
+struct Switch
+{
+    int row;
+    int col;
+    int group;
+};
+
+struct Guard
+{
+    int row;
+    int col;
+    int movement;
+    char direction;
+};
+
 //LEVEL 6: CREATE YOUR OWN LEVEL, user creates their own level. 
 //ALL input must be validated 
 void loadCreateLevel(){
@@ -1447,6 +1470,9 @@ while (cols <= 0)
 }
     vector<string> map(rows, string(cols, ' '));
 
+    vector<Door> doors;
+    vector<Switch> switches;
+    vector<Guard> guards;
     cout << endl;
     cout << "Create level \"" << levelName << "\"" << endl;
     //Display map
@@ -1505,12 +1531,55 @@ while (cols <= 0)
     cout << "Could not save file.\n";
     return;
 }
-    file << rows << " " << cols << endl;
+file << rows << " " << cols << endl;
 
-    for (int i = 0; i < rows; i++)
+//SAVE PROCESS
+// Save normal objects
+for (int i = 0; i < rows; i++)
+{
+    for (int j = 0; j < cols; j++)
     {
-        file << map[i] << endl;
+        if (map[i][j] == '#')
+            file << "Wall " << i << " " << j << endl;
+
+        else if (map[i][j] == '@')
+            file << "Player " << i << " " << j << endl;
+
+        else if (map[i][j] == '$')
+            file << "Goal " << i << " " << j << endl;
     }
+}
+
+
+// Save guards
+for (Guard g : guards)
+{
+    file << "Guard "
+         << g.movement << " "
+         << g.direction << " "
+         << g.row << " "
+         << g.col << endl;
+}
+
+
+// Save doors
+for (Door d : doors)
+{
+    file << "Door "
+         << d.group << " "
+         << d.row << " "
+         << d.col << endl;
+}
+
+
+// Save switches
+for (Switch s : switches)
+{
+    file << "Switch "
+         << s.group << " "
+         << s.row << " "
+         << s.col << endl;
+}
 
     file.close();
 
@@ -1595,36 +1664,41 @@ while (!(cin >> col))
 
         case 4:
 {
-    int movement = 0;
-    char direction;
+int movement = 0;
+char direction;
 
-    cout << "Movement type:\n";
-    cout << "1. Back and forth\n";
-    cout << "2. Rectangle patrol\n";
-while (movement != 1 && movement != 2)
+cout << "Movement type:\n";
+cout << "1. Back and forth\n";
+cout << "2. Rectangle patrol\n";
+cout << "Enter choice: ";
+
+while (!(cin >> movement) || (movement != 1 && movement != 2))
 {
     cout << "Invalid movement. Enter 1 or 2: ";
+    cin.clear();
+    cin.ignore(1000, '\n');
+    }  
+    //MOVEMENT  
+cout << "Direction (W/A/S/D): ";
 
-    while (!(cin >> movement))
-    {
-        cout << "Invalid input. Enter 1 or 2: ";
-        cin.clear();
-        cin.ignore(1000, '\n');
-    }
+while (!(cin >> direction))
+{
+    cout << "Invalid input. Enter W/A/S/D: ";
+    cin.clear();
+    cin.ignore(1000, '\n');
 }
-    cout << "Direction (W/A/S/D): ";
+
+direction = toupper(direction);
+
+while (direction != 'W' &&
+       direction != 'A' &&
+       direction != 'S' &&
+       direction != 'D')
+{
+    cout << "Invalid direction. Enter W/A/S/D: ";
     cin >> direction;
     direction = toupper(direction);
-
-    while (direction != 'W' &&
-           direction != 'A' &&
-           direction != 'S' &&
-           direction != 'D')
-    {
-        cout << "Invalid direction. Enter W/A/S/D: ";
-        cin >> direction;
-        direction = toupper(direction);
-    }
+}
 
     // Store the correct guard symbol
     if (direction == 'W')
@@ -1636,12 +1710,14 @@ while (movement != 1 && movement != 2)
     else if (direction == 'D')
         map[row][col] = '>';
 
-    break;
+guards.push_back({row, col, movement, direction});
+
+break;
 }
     case 5:
 {
     map[row][col] = 'D';
-//validate door group
+//validate door group, DOOR CASE
 int group;
 cout << "Enter door group: ";
 while (!(cin >> group))
@@ -1650,13 +1726,22 @@ while (!(cin >> group))
     cin.clear();
     cin.ignore(1000, '\n');
 }
+//DOOR CASE
 while (group <= 0)
 {
     cout << "Door group must be positive: ";
-    cin >> group;
+
+    while (!(cin >> group))
+    {
+        cout << "Invalid input. Enter a positive number: ";
+        cin.clear();
+        cin.ignore(1000, '\n');
+    }
 }
 
-    break;
+doors.push_back({row, col, group});
+
+break;
 }
     case 6:
 {
@@ -1664,7 +1749,7 @@ while (group <= 0)
 
 //validate switch group
 int group;
-
+//SWITCH CASE
 cout << "Enter switch group: ";
 
 while (!(cin >> group))
@@ -1677,10 +1762,19 @@ while (!(cin >> group))
 while (group <= 0)
 {
     cout << "Switch group must be positive: ";
-    cin >> group;
+
+    while (!(cin >> group))
+    {
+        cout << "Invalid input. Enter a positive number: ";
+        cin.clear();
+        cin.ignore(1000, '\n');
+    }
 }
 
-    break;
+switches.push_back({row, col, group});
+
+break;
+
 }
         case 7:
             map[row][col] = ' ';
@@ -1690,10 +1784,10 @@ while (group <= 0)
             cout << "Invalid object.\n";
             break;
         }
-    }
-}
+    } // while true
+} // loadCreateLevel
 
-//Level 7: LOAD CUSTOM LEVEL, made by user!
+//Level 7: LOAD CUSTOM LEVEL (LEVEL 6), made by user!
 void loadCustomLevel()
 {
     //variables
@@ -1702,8 +1796,15 @@ void loadCustomLevel()
 
     cout << "Enter level name: ";
     cin >> levelName;
-//stream for file
-    ifstream file(levelName + ".lvl");
+
+    // Allow user to type with or without .lvl
+    if(levelName.find(".lvl") == string::npos)
+    {
+        levelName += ".lvl";
+    }
+
+    //stream for file
+    ifstream file(levelName);
 
     if (!file)
     {
@@ -1713,21 +1814,101 @@ void loadCustomLevel()
 
     file >> rows >> cols;
 
-    vector<string> map(rows);
+    vector<string> map(rows, string(cols, ' '));
 
-    for (int i = 0; i < rows; i++)
+    // Store object information
+    vector<Door> doors;
+    vector<Switch> switches;
+    vector<Guard> guards;
+
+
+    string object;
+
+    while (file >> object)
     {
-        file >> map[i];
+        int row, col;
+
+        if (object == "Wall")
+        {
+            file >> row >> col;
+            map[row][col] = '#';
+        }
+
+
+        else if (object == "Player")
+        {
+            file >> row >> col;
+            map[row][col] = '@';
+        }
+
+
+        else if (object == "Goal")
+        {
+            file >> row >> col;
+            map[row][col] = '$';
+        }
+
+
+        else if (object == "Guard")
+        {
+            int movement;
+            char direction;
+
+            file >> movement >> direction >> row >> col;
+
+            if (direction == 'W')
+                map[row][col] = '^';
+
+            else if (direction == 'A')
+                map[row][col] = '<';
+
+            else if (direction == 'S')
+                map[row][col] = 'v';
+
+            else if (direction == 'D')
+                map[row][col] = '>';
+
+            guards.push_back({row, col, movement, direction});
+        }
+
+
+        else if (object == "Door")
+        {
+            int group;
+
+            file >> group >> row >> col;
+
+            map[row][col] = 'D';
+
+            doors.push_back({row, col, group});
+        }
+
+
+        else if (object == "Switch")
+        {
+            int group;
+
+            file >> group >> row >> col;
+
+            map[row][col] = 'S';
+
+            switches.push_back({row, col, group});
+        }
     }
 
+
     file.close();
+
     cout << "\nLevel loaded successfully!\n";
     cout << "\nLoaded Level: " << levelName << endl;
+
     cout << "  ";
 
     for (int j = 0; j < cols; j++)
-    cout << j << " ";
+        cout << j << " ";
+
     cout << endl;
+
 
     for (int i = 0; i < rows; i++)
     {
@@ -1739,6 +1920,176 @@ void loadCustomLevel()
         }
 
         cout << endl;
+    }
+
+
+    // LOADS THE PLAYER MAP AFTER
+playLevel(map, rows, cols, doors, switches, guards);
+}
+
+//PLAYERS CUSTOM LEVEL SAVED.
+void playLevel(vector<string> map, int rows, int cols, vector<Door> doors, vector<Switch> switches, vector<Guard> guards)
+{
+    cout << "Custom Level Loaded!\n";
+
+    // Find player
+    int playerX = -1;
+    int playerY = -1;
+
+    for (int i = 0; i < rows; i++)
+    {
+        for (int j = 0; j < cols; j++)
+        {
+            if (map[i][j] == '@')
+            {
+                playerX = i;
+                playerY = j;
+                map[i][j] = ' ';
+            }
+        }
+    }
+
+    if (playerX == -1)
+    {
+        cout << "No player (@) found in this level.\n";
+        return;
+    }
+
+    bool doorOpen = false;
+    string input;
+
+    while (true)
+    {
+        // Print map
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < cols; j++)
+            {
+                if (i == playerX && j == playerY)
+                    cout << '@';
+                else if (map[i][j] == 'D' && doorOpen)
+                    cout << ' ';
+                else
+                    cout << map[i][j];
+            }
+
+            cout << endl;
+        }
+
+        cout << "Move (WASD) or inspect: ";
+        cin >> input;
+
+
+        // INSPECT
+        if (input == "inspect")
+        {
+            int row, col;
+
+            cout << "Row: ";
+            cin >> row;
+
+            cout << "Column: ";
+            cin >> col;
+
+            if (row < 0 || row >= rows || col < 0 || col >= cols)
+            {
+                cout << "Invalid location.\n";
+                continue;
+            }
+
+
+            if (map[row][col] == '#')
+                cout << "Wall\n";
+
+            else if (map[row][col] == 'D')
+                cout << (doorOpen ? "Open Door\n" : "Closed Door\n");
+
+            else if (map[row][col] == 'S')
+                cout << "Switch\n";
+
+            else if (map[row][col] == '$')
+                cout << "Goal\n";
+
+            else if (map[row][col] == '^' ||
+                     map[row][col] == 'v' ||
+                     map[row][col] == '<' ||
+                     map[row][col] == '>')
+                cout << "Guard\n";
+
+            else
+                cout << "Empty\n";
+
+            continue;
+        }
+
+
+        int newX = playerX;
+        int newY = playerY;
+
+
+        if (input == "w")
+            newX--;
+
+        else if (input == "s")
+            newX++;
+
+        else if (input == "a")
+            newY--;
+
+        else if (input == "d")
+            newY++;
+
+        else
+        {
+            cout << "Invalid input.\n";
+            continue;
+        }
+
+
+        // Boundary check
+        if (newX < 0 || newX >= rows ||
+            newY < 0 || newY >= cols)
+        {
+            cout << "Can't move there.\n";
+            continue;
+        }
+
+
+        // Win
+        if (map[newX][newY] == '$')
+        {
+            cout << "YOU WIN!\n";
+            return;
+        }
+
+
+        // Wall
+        if (map[newX][newY] == '#')
+        {
+            cout << "You hit a wall!\n";
+            continue;
+        }
+
+
+        // Door
+        if (map[newX][newY] == 'D' && !doorOpen)
+        {
+            cout << "Door is closed!\n";
+            continue;
+        }
+
+
+        // Move player
+        playerX = newX;
+        playerY = newY;
+
+
+        // Switch
+        if (map[playerX][playerY] == 'S')
+        {
+            doorOpen = true;
+            cout << "Door opened!\n";
+        }
     }
 }
 
