@@ -1401,23 +1401,50 @@ void loadCreateLevel(){
     {
     cout << "Level name cannot be empty. Enter again: ";
     cin >> levelName;
-    }   
-    cout << "Enter number of rows: ";
-    cin >> rows;
-  
-    //if user enters number
-    while (rows <= 0)
+    }  
+// ROWS
+cout << "Enter number of rows: ";
+
+while (!(cin >> rows))
+{
+    cout << "Invalid input. Enter a number: ";
+    cin.clear();
+    cin.ignore(1000, '\n');
+}
+
+while (rows <= 0)
+{
+    cout << "Rows must be greater than 0. Enter again: ";
+
+    while (!(cin >> rows))
     {
-        cout << "Rows must be greater than 0. Enter again: ";
-        cin >> rows;
+        cout << "Invalid input. Enter a number: ";
+        cin.clear();
+        cin.ignore(1000, '\n');
     }
-    cout << "Enter number of columns: ";
-    cin >> cols;
-    while (cols <= 0)
+}
+
+//COLUMNS
+cout << "Enter number of columns: ";
+
+while (!(cin >> cols))
+{
+    cout << "Invalid input. Enter a number: ";
+    cin.clear();
+    cin.ignore(1000, '\n');
+}
+
+while (cols <= 0)
+{
+    cout << "Columns must be greater than 0. Enter again: ";
+
+    while (!(cin >> cols))
     {
-        cout << "Columns must be greater than 0. Enter again: ";
-        cin >> cols;
+        cout << "Invalid input. Enter a number: ";
+        cin.clear();
+        cin.ignore(1000, '\n');
     }
+}
     vector<string> map(rows, string(cols, ' '));
 
     cout << endl;
@@ -1446,7 +1473,7 @@ void loadCreateLevel(){
     cout << "1. Wall (#)\n";
     cout << "2. Player (@)\n";
     cout << "3. Goal ($)\n";
-    cout << "4. Guard (G)\n";
+    cout << "4. Guard (^ v < >)\n";
     cout << "5. Door (D)\n";
     cout << "6. Switch (S)\n";
     cout << "7. Empty\n";
@@ -1455,18 +1482,29 @@ void loadCreateLevel(){
 
     int objectChoice;
     cout << "Choose object: ";
-    cin >> objectChoice;
+    while (!(cin >> objectChoice))
+{
+    cout << "Invalid input. Enter a number (1-9): ";
+    cin.clear();
+    cin.ignore(1000, '\n');
+}
 
     if (objectChoice < 1 || objectChoice > 9)
     {
     cout << "Invalid object.\n";
     continue;
     }
-    //FILE
+
+    //FILES
     if (objectChoice == 9)
     {
     ofstream file(levelName + ".lvl");
 
+    if (!file)
+{
+    cout << "Could not save file.\n";
+    return;
+}
     file << rows << " " << cols << endl;
 
     for (int i = 0; i < rows; i++)
@@ -1484,11 +1522,21 @@ void loadCreateLevel(){
     {
     int row, col;
 
-    cout << "Enter row: ";
-    cin >> row;
+cout << "Enter row: ";
+while (!(cin >> row))
+{
+    cout << "Invalid input. Enter a number: ";
+    cin.clear();
+    cin.ignore(1000, '\n');
+}
 
-    cout << "Enter column: ";
-    cin >> col;
+cout << "Enter column: ";
+while (!(cin >> col))
+{
+    cout << "Invalid input. Enter a number: ";
+    cin.clear();
+    cin.ignore(1000, '\n');
+}
 
     if (row < 0 || row >= rows || col < 0 || col >= cols)
     {
@@ -1506,11 +1554,23 @@ void loadCreateLevel(){
     continue;
 }
 
-    int row, col;
-    cout << "Enter row: ";
-    cin >> row;
-    cout << "Enter column: ";
-    cin >> col;
+int row, col;
+
+cout << "Enter row: ";
+while (!(cin >> row))
+{
+    cout << "Invalid input. Enter a number: ";
+    cin.clear();
+    cin.ignore(1000, '\n');
+}
+
+cout << "Enter column: ";
+while (!(cin >> col))
+{
+    cout << "Invalid input. Enter a number: ";
+    cin.clear();
+    cin.ignore(1000, '\n');
+}
 
     // Validate
     if (row < 0 || row >= rows || col < 0 || col >= cols)
@@ -1534,17 +1594,94 @@ void loadCreateLevel(){
             break;
 
         case 4:
-            map[row][col] = 'G';
-            break;
+{
+    int movement = 0;
+    char direction;
 
-        case 5:
-            map[row][col] = 'D';
-            break;
+    cout << "Movement type:\n";
+    cout << "1. Back and forth\n";
+    cout << "2. Rectangle patrol\n";
+while (movement != 1 && movement != 2)
+{
+    cout << "Invalid movement. Enter 1 or 2: ";
 
-        case 6:
-            map[row][col] = 'S';
-            break;
+    while (!(cin >> movement))
+    {
+        cout << "Invalid input. Enter 1 or 2: ";
+        cin.clear();
+        cin.ignore(1000, '\n');
+    }
+}
+    cout << "Direction (W/A/S/D): ";
+    cin >> direction;
+    direction = toupper(direction);
 
+    while (direction != 'W' &&
+           direction != 'A' &&
+           direction != 'S' &&
+           direction != 'D')
+    {
+        cout << "Invalid direction. Enter W/A/S/D: ";
+        cin >> direction;
+        direction = toupper(direction);
+    }
+
+    // Store the correct guard symbol
+    if (direction == 'W')
+        map[row][col] = '^';
+    else if (direction == 'A')
+        map[row][col] = '<';
+    else if (direction == 'S')
+        map[row][col] = 'v';
+    else if (direction == 'D')
+        map[row][col] = '>';
+
+    break;
+}
+    case 5:
+{
+    map[row][col] = 'D';
+//validate door group
+int group;
+cout << "Enter door group: ";
+while (!(cin >> group))
+{
+    cout << "Invalid input. Enter a positive number: ";
+    cin.clear();
+    cin.ignore(1000, '\n');
+}
+while (group <= 0)
+{
+    cout << "Door group must be positive: ";
+    cin >> group;
+}
+
+    break;
+}
+    case 6:
+{
+    map[row][col] = 'S';
+
+//validate switch group
+int group;
+
+cout << "Enter switch group: ";
+
+while (!(cin >> group))
+{
+    cout << "Invalid input. Enter a positive number: ";
+    cin.clear();
+    cin.ignore(1000, '\n');
+}
+
+while (group <= 0)
+{
+    cout << "Switch group must be positive: ";
+    cin >> group;
+}
+
+    break;
+}
         case 7:
             map[row][col] = ' ';
             break;
@@ -1557,9 +1694,52 @@ void loadCreateLevel(){
 }
 
 //Level 7: LOAD CUSTOM LEVEL, made by user!
-void loadCustomLevel(){
+void loadCustomLevel()
+{
+    //variables
+    string levelName;
+    int rows, cols;
 
+    cout << "Enter level name: ";
+    cin >> levelName;
+//stream for file
+    ifstream file(levelName + ".lvl");
 
+    if (!file)
+    {
+        cout << "Could not open level.\n";
+        return;
+    }
+
+    file >> rows >> cols;
+
+    vector<string> map(rows);
+
+    for (int i = 0; i < rows; i++)
+    {
+        file >> map[i];
+    }
+
+    file.close();
+    cout << "\nLevel loaded successfully!\n";
+    cout << "\nLoaded Level: " << levelName << endl;
+    cout << "  ";
+
+    for (int j = 0; j < cols; j++)
+    cout << j << " ";
+    cout << endl;
+
+    for (int i = 0; i < rows; i++)
+    {
+        cout << i << " ";
+
+        for (int j = 0; j < cols; j++)
+        {
+            cout << map[i][j] << " ";
+        }
+
+        cout << endl;
+    }
 }
 
 //Main menu with user input & loading the levels, play again added!
