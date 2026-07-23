@@ -1386,7 +1386,7 @@ string map[7] =
     }
 }
 
-//OUTSIDE STURCTURE
+// STURCTURE
 struct Door
 {
     int row;
@@ -1408,7 +1408,12 @@ struct Guard
     int movement;
     char direction;
 };
-
+void playLevel(vector<string> map,
+               int rows,
+               int cols,
+               vector<Door> doors,
+               vector<Switch> switches,
+               vector<Guard> guards);
 //LEVEL 6: CREATE YOUR OWN LEVEL, user creates their own level. 
 //ALL input must be validated 
 void loadCreateLevel(){
@@ -1435,15 +1440,15 @@ while (!(cin >> rows))
     cin.ignore(1000, '\n');
 }
 
-while (rows <= 0)
+while (rows < 5)
 {
-    cout << "Rows must be greater than 0. Enter again: ";
+    cout << "Rows must be at least 5. Enter again: ";
 
     while (!(cin >> rows))
     {
         cout << "Invalid input. Enter a number: ";
         cin.clear();
-        cin.ignore(1000, '\n');
+        cin.ignore(1000,'\n');
     }
 }
 
@@ -1457,9 +1462,9 @@ while (!(cin >> cols))
     cin.ignore(1000, '\n');
 }
 
-while (cols <= 0)
+while (cols <= 5)
 {
-    cout << "Columns must be greater than 0. Enter again: ";
+    cout << "Columns must be greater than 5. Enter again: ";
 
     while (!(cin >> cols))
     {
@@ -1469,6 +1474,18 @@ while (cols <= 0)
     }
 }
     vector<string> map(rows, string(cols, ' '));
+    //ADDS BORDERS.
+    for(int i = 0; i < rows; i++)
+{
+    map[i][0] = '#';
+    map[i][cols - 1] = '#';
+}
+
+for(int j = 0; j < cols; j++)
+{
+    map[0][j] = '#';
+    map[rows - 1][j] = '#';
+}
 
     vector<Door> doors;
     vector<Switch> switches;
@@ -1524,6 +1541,32 @@ while (cols <= 0)
     //FILES
     if (objectChoice == 9)
     {
+    bool hasPlayer = false;
+    bool hasGoal = false;
+
+for(int i = 0; i < rows; i++)
+{
+    for(int j = 0; j < cols; j++)
+    {
+        if(map[i][j] == '@')
+            hasPlayer = true;
+
+        if(map[i][j] == '$')
+            hasGoal = true;
+    }
+}
+
+if(!hasPlayer)
+{
+    cout << "You must place one player (@).\n";
+    continue;
+}
+
+if(!hasGoal)
+{
+    cout << "You must place one goal ($).\n";
+    continue;
+}
     ofstream file(levelName + ".lvl");
 
     if (!file)
@@ -1647,21 +1690,67 @@ while (!(cin >> col))
         cout << "Invalid location.\n";
         continue;
     }
-
+    //walls intact
+    if ((row == 0 || row == rows - 1 ||
+     col == 0 || col == cols - 1) && objectChoice != 1)
+{
+    cout << "Only walls are allowed on the border.\n";
+    continue;
+}
     switch(objectChoice)
     {
         case 1:
             map[row][col] = '#';
             break;
 
-        case 2:
-            map[row][col] = '@';
-            break;
+case 2:
+{
+    bool playerExists = false;
 
-        case 3:
-            map[row][col] = '$';
-            break;
+    for (int i = 0; i < rows; i++)
+    {
+        for (int j = 0; j < cols; j++)
+        {
+            if (map[i][j] == '@')
+                playerExists = true;
+        }
+    }
 
+    if (playerExists)
+    {
+        cout << "Only one player allowed.\n";
+    }
+    else
+    {
+        map[row][col] = '@';
+    }
+
+    break;
+}
+    case 3:
+{
+    bool goalExists = false;
+
+    for(int i = 0; i < rows; i++)
+    {
+        for(int j = 0; j < cols; j++)
+        {
+            if(map[i][j] == '$')
+                goalExists = true;
+        }
+    }
+
+    if(goalExists)
+    {
+        cout << "Only one goal allowed.\n";
+    }
+    else
+    {
+        map[row][col] = '$';
+    }
+
+    break;
+}
         case 4:
 {
 int movement = 0;
@@ -1776,13 +1865,17 @@ switches.push_back({row, col, group});
 break;
 
 }
-        case 7:
-            map[row][col] = ' ';
-            break;
-
-        default:
-            cout << "Invalid object.\n";
-            break;
+    case 7:
+    if (row == 0 || row == rows - 1 ||
+        col == 0 || col == cols - 1)
+    {
+        cout << "Cannot erase border walls.\n";
+    }
+    else
+    {
+        map[row][col] = ' ';
+    }
+    break;
         }
     } // while true
 } // loadCreateLevel
@@ -1898,10 +1991,16 @@ void loadCustomLevel()
 
 
     file.close();
+    string displayName = levelName;
 
+    if(displayName.find(".lvl") != string::npos)
+{
+    displayName = displayName.substr(0, displayName.find(".lvl"));
+}
+
+ 
     cout << "\nLevel loaded successfully!\n";
-    cout << "\nLoaded Level: " << levelName << endl;
-
+    cout << "\nLoaded Level: " << displayName << endl;
     cout << "  ";
 
     for (int j = 0; j < cols; j++)
@@ -1928,7 +2027,12 @@ playLevel(map, rows, cols, doors, switches, guards);
 }
 
 //PLAYERS CUSTOM LEVEL SAVED.
-void playLevel(vector<string> map, int rows, int cols, vector<Door> doors, vector<Switch> switches, vector<Guard> guards)
+void playLevel(vector<string> map,
+               int rows,
+               int cols,
+               vector<Door> doors,
+               vector<Switch> switches,
+               vector<Guard> guards)
 {
     cout << "Custom Level Loaded!\n";
 
@@ -1997,7 +2101,6 @@ void playLevel(vector<string> map, int rows, int cols, vector<Door> doors, vecto
                 continue;
             }
 
-
             if (map[row][col] == '#')
                 cout << "Wall\n";
 
@@ -2016,10 +2119,12 @@ void playLevel(vector<string> map, int rows, int cols, vector<Door> doors, vecto
                      map[row][col] == '>')
                 cout << "Guard\n";
 
-            else
+            else if (map[row][col] == ' ')
                 cout << "Empty\n";
 
-            continue;
+            else
+                cout << "Unknown object\n";
+                continue;
         }
 
 
@@ -2082,8 +2187,73 @@ void playLevel(vector<string> map, int rows, int cols, vector<Door> doors, vecto
         // Move player
         playerX = newX;
         playerY = newY;
+  
+// Move every guard
+for (int i = 0; i < guards.size(); i++)
+{
+    int nextRow = guards[i].row;
+    int nextCol = guards[i].col;
 
 
+    // Find next guard position
+    if (guards[i].direction == 'W')
+        nextRow--;
+
+    else if (guards[i].direction == 'S')
+        nextRow++;
+
+    else if (guards[i].direction == 'A')
+        nextCol--;
+
+    else if (guards[i].direction == 'D')
+        nextCol++;
+
+
+    // Check if guard can move
+    if(nextRow > 0 && nextRow < rows - 1 &&
+       nextCol > 0 && nextCol < cols - 1 &&
+       map[nextRow][nextCol] != '#' &&
+       map[nextRow][nextCol] != 'D' &&
+       map[nextRow][nextCol] != '$' &&
+       map[nextRow][nextCol] != 'S')
+    {
+        // erase old guard location
+        map[guards[i].row][guards[i].col] = ' ';
+
+        // update guard position
+        guards[i].row = nextRow;
+        guards[i].col = nextCol;
+    }
+    else
+    {
+        // Reverse direction if blocked
+        if (guards[i].direction == 'W')
+            guards[i].direction = 'S';
+
+        else if (guards[i].direction == 'S')
+            guards[i].direction = 'W';
+
+        else if (guards[i].direction == 'A')
+            guards[i].direction = 'D';
+
+        else if (guards[i].direction == 'D')
+            guards[i].direction = 'A';
+    }
+
+
+    // Draw guard again
+    if (guards[i].direction == 'W')
+        map[guards[i].row][guards[i].col] = '^';
+
+    else if (guards[i].direction == 'S')
+        map[guards[i].row][guards[i].col] = 'v';
+
+    else if (guards[i].direction == 'A')
+        map[guards[i].row][guards[i].col] = '<';
+
+    else if (guards[i].direction == 'D')
+        map[guards[i].row][guards[i].col] = '>';
+}
         // Switch
         if (map[playerX][playerY] == 'S')
         {
