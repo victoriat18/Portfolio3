@@ -8,86 +8,74 @@
 using namespace std;
 
 // LEVEL 1 : A New Enemy, Basic Beginner level (One door & one switch)
-//standard flip & still guard
-void loadLevel1() 
+// One moving guard
+void loadLevel1()
 {
-    //HOW TO...
     cout << "   Level 1 loaded - Beginner Level    " << endl;
     cout << "   -----  Directions  -----    " << endl;
     cout << "Reach the $ without being seen, Move using WASD." << endl;
     cout << "Type 'inspect' to check what is on a tile (doesn't use a turn)." << endl;
     cout << "Walk onto switches (S) to toggle doors (D)." << endl;
-    cout << "Watch out for both patrolling and stationary guards." << endl;
+    cout << "Watch out for the patrolling guard." << endl;
     cout << "Guards only watch where they're facing." << endl;
     cout << "----------------------------------------------" << endl;
 
     string map[5] =
     {
-    "########",
-    "#      #",
-    "#  #   #",
-    "# S  D$#",
-    "########"
+        "########",
+        "#      #",
+        "#  #   #",
+        "# S  D$#",
+        "########"
     };
+
     int playerX = 1;
     int playerY = 1;
-    // Guard starts here
+
+    // Moving guard
     int guardX = 2;
     int guardY = 6;
-    // Guard moving left
+
     int guardDX = 0;
     int guardDY = -1;
-    //STILL GUARD (stays still)
-    int stillGuardX = 2;
-    int stillGuardY = 5;
-    char stillGuardSymbol = '>';
 
     char guardSymbol = '<';
-//~ DOOR FEATURE
+
     bool doorOpen = false;
-    //bool door2Open = false;
 
     string input;
-    while (true)
-    {
-// PRINT MAP
-for (int i = 0; i < 5; i++)
-    {
-    for (int j = 0; j < 8; j++)
-    {
-       if (i == playerX && j == playerY)
-    {
-    cout << '@';
-    }
-    else if (i == stillGuardX && j == stillGuardY)
-    {
-    cout << stillGuardSymbol;
-    }   
-    else if (i == guardX && j == guardY)
-    {
-    cout << guardSymbol;
-    }   
-        else if (map[i][j] == 'D' && doorOpen)
-        {
-            cout << ' ';
-        }
-        else
-        {
-            cout << map[i][j];
-        }
-    }
-    cout << endl;
-}
 
-        cout << "Move (WASD) or type 'inspect': ";
+    while(true)
+    {
+        // PRINT MAP
+        for(int i = 0; i < 5; i++)
+        {
+            for(int j = 0; j < 8; j++)
+            {
+                if(i == playerX && j == playerY)
+                    cout << '@';
+
+                else if(i == guardX && j == guardY)
+                    cout << guardSymbol;
+
+                else if(map[i][j] == 'D' && doorOpen)
+                    cout << ' ';
+
+                else
+                    cout << map[i][j];
+            }
+
+            cout << endl;
+        }
+
+        cout << "Move (WASD) or type inspect: ";
         cin >> input;
 
-        // INSPECT FEATURE
-        if (input == "inspect")
+        // INSPECT
+        if(input == "inspect")
         {
             int row;
             int col;
-
 
             cout << "Enter row: ";
             cin >> row;
@@ -100,223 +88,207 @@ for (int i = 0; i < 5; i++)
                 cout << "Invalid location.\n";
                 continue;
             }
-    if (row == stillGuardX && col == stillGuardY)
-{
-    cout << "Stationary guard facing " << stillGuardSymbol << endl;
-}
-else if (row == guardX && col == guardY)
-{
-    cout << "Patrolling guard facing " << guardSymbol << endl;
-}
-else if(map[row][col] == '#')
-{
-    cout << "Wall." << endl;
-}
-else if(map[row][col] == 'D')
-{
-    if (doorOpen)
-    {
-        cout << "Open door." << endl;
-    }
-    else
-    {
-        cout << "Closed door." << endl;
-    }
-}
-else if(map[row][col] == 'S')
-{
-    cout << "Switch." << endl;
-}
-else if(map[row][col] == '$')
-{
-    cout << "Goal." << endl;
-}
-else
-{
-    cout << "Empty tile." << endl;
-}
-    continue;
+
+            if(row == guardX && col == guardY)
+                cout << "Patrolling guard facing " << guardSymbol << endl;
+
+            else if(map[row][col] == '#')
+                cout << "Wall.\n";
+
+            else if(map[row][col] == 'D')
+                cout << (doorOpen ? "Open door.\n" : "Closed door.\n");
+
+            else if(map[row][col] == 'S')
+                cout << "Switch.\n";
+
+            else if(map[row][col] == '$')
+                cout << "Goal.\n";
+
+            else
+                cout << "Empty tile.\n";
+
+            continue;
         }
+
         int newX = playerX;
         int newY = playerY;
 
-        if(input != "w" && input != "a" &&
-           input != "s" && input != "d")
+        if(input == "w")
+            newX--;
+
+        else if(input == "s")
+            newX++;
+
+        else if(input == "a")
+            newY--;
+
+        else if(input == "d")
+            newY++;
+
+        else
         {
             cout << "Invalid input.\n";
             continue;
         }
-        if(input == "w") newX--;
-        if(input == "s") newX++;
-        if(input == "a") newY--;
-        if(input == "d") newY++;
-        //PLAYER WALKS INTO GUARD
-        if ((newX == guardX && newY == guardY) || (newX == stillGuardX && newY == stillGuardY))
-{
-    cout << "YOU WERE CAUGHT!" << endl;
-    return;
-}
-        //WIN
+
+        // PLAYER COLLIDES WITH GUARD
+        if(newX == guardX && newY == guardY)
+        {
+            cout << "YOU WERE CAUGHT!\n";
+            return;
+        }
+
+        // WALL / DOOR CHECK
+        if(map[newX][newY] == '#')
+        {
+            cout << "You hit a wall.\n";
+            continue;
+        }
+        if(map[newX][newY] == 'D' && !doorOpen)
+        {
+            cout << "Door is closed.\n";
+            continue;
+        }
+        // WIN
         if(map[newX][newY] == '$')
         {
-            cout << "YOU WIN LEVEL 1!" << endl;
+            cout << "YOU WIN LEVEL 1!\n";
             return;
         }
-   //MOVE PLAYER
-    if (map[newX][newY] != '#' &&
-    (map[newX][newY] != 'D' || doorOpen))
-{
-    playerX = newX;
-    playerY = newY;
-    //Switch
-   if (map[playerX][playerY] == 'S')
-{
-    doorOpen = !doorOpen;
-    cout << "Door toggled!" << endl;
-    }
-}
-else
-{
-    cout << "You hit a wall or a closed door." << endl;
-    continue;
-}
+        // MOVE PLAYER
+        playerX = newX;
+        playerY = newY;
 
-    //GUARD PATROL & boundaries
-    int nextX = guardX + guardDX;
-    int nextY = guardY + guardDY;
-    bool outOfBounds = (nextX < 0 || nextX >= 5 || nextY < 0 || nextY >= 8);
+        // PLAYER SWITCH
+        if(map[playerX][playerY] == 'S')
+        {
+            doorOpen = !doorOpen;
 
-if (outOfBounds || map[nextX][nextY] == '#' || (map[nextX][nextY] == 'D' && !doorOpen) ||(nextX == stillGuardX && nextY == stillGuardY))
-{
-    // Left -> Up
-    if (guardDX == 0 && guardDY == -1)
-    {
-        guardDX = -1;
-        guardDY = 0;
-        guardSymbol = '^';
-    }
-    // Up -> Right
-    else if (guardDX == -1 && guardDY == 0)
-    {
-        guardDX = 0;
-        guardDY = 1;
-        guardSymbol = '>';
-    }
-    // Right -> Down
-    else if (guardDX == 0 && guardDY == 1)
-    {
-        guardDX = 1;
-        guardDY = 0;
-        guardSymbol = 'V';
-    }
-    // Down -> Left
-    else
-    {
-        guardDX = 0;
-        guardDY = -1;
-        guardSymbol = '<';
-    }
-}
-else
-{
-    guardX = nextX;
-    guardY = nextY;
-}
-        // Guard activates switch
-    if (map[guardX][guardY] == 'S')
-{
-    doorOpen = !doorOpen;
-    cout << "Guard toggled the door!" << endl;
-}
-        // GUARD WALKS INTO PLAYER
+            if(doorOpen)
+                cout << "Door opened!\n";
+            else
+                cout << "Door closed!\n";
+        }
+
+        // MOVE PATROLLING GUARD
+        int nextX = guardX + guardDX;
+        int nextY = guardY + guardDY;
+
+        if(nextX < 0 || nextX >= 5 ||
+           nextY < 0 || nextY >= 8 ||
+           map[nextX][nextY] == '#' ||
+           (map[nextX][nextY] == 'D' && !doorOpen))
+        {
+            // turn clockwise
+            if(guardDX == 0 && guardDY == -1)
+            {
+                guardDX = -1;
+                guardDY = 0;
+                guardSymbol = '^';
+            }
+            else if(guardDX == -1 && guardDY == 0)
+            {
+                guardDX = 0;
+                guardDY = 1;
+                guardSymbol = '>';
+            }
+            else if(guardDX == 0 && guardDY == 1)
+            {
+                guardDX = 1;
+                guardDY = 0;
+                guardSymbol = 'v';
+            }
+            else
+            {
+                guardDX = 0;
+                guardDY = -1;
+                guardSymbol = '<';
+            }
+        }
+        else
+        {
+            guardX = nextX;
+            guardY = nextY;
+        }
+
+        // GUARD SWITCH
+        if(map[guardX][guardY] == 'S')
+        {
+            doorOpen = !doorOpen;
+            cout << "Guard toggled the door!\n";
+        }
+
+        // GUARD CATCH PLAYER
         if(playerX == guardX && playerY == guardY)
         {
-            cout << "YOU WERE CAUGHT!" << endl;
+            cout << "YOU WERE CAUGHT!\n";
             return;
         }
 
-// GUARD VISION
-if (guardSymbol == '<')
-{
-    // Look left
-    for (int y = guardY - 1; y >= 0; y--)
-    {
-        if (map[guardX][y] == '#' ||
-            (map[guardX][y] == 'D' && !doorOpen))
-            break;
-
-        if (guardX == playerX && y == playerY)
+        // MOVING GUARD VISION
+        if(guardSymbol == '<')
         {
-            cout << "YOU WERE CAUGHT!" << endl;
-            return;
-        }
-    }
-}
-else if (guardSymbol == '>')
-{
-    // Look right
-    for (int y = guardY + 1; y < 8; y++)
-    {
-        if (map[guardX][y] == '#' ||
-            (map[guardX][y] == 'D' && !doorOpen))
-            break;
+            for(int y = guardY - 1; y >= 0; y--)
+            {
+                if(map[guardX][y] == '#' ||
+                  (map[guardX][y] == 'D' && !doorOpen))
+                    break;
 
-        if (guardX == playerX && y == playerY)
+                if(guardX == playerX && y == playerY)
+                {
+                    cout << "YOU WERE CAUGHT!\n";
+                    return;
+                }
+            }
+        }
+        else if(guardSymbol == '>')
         {
-            cout << "YOU WERE CAUGHT!" << endl;
-            return;
-        }
-    }
-}
-else if (guardSymbol == '^')
-{
-    // Look up
-    for (int x = guardX - 1; x >= 0; x--)
-    {
-        if (map[x][guardY] == '#' ||
-            (map[x][guardY] == 'D' && !doorOpen))
-            break;
+            for(int y = guardY + 1; y < 8; y++)
+            {
+                if(map[guardX][y] == '#' ||
+                  (map[guardX][y] == 'D' && !doorOpen))
+                    break;
 
-        if (x == playerX && guardY == playerY)
+                if(guardX == playerX && y == playerY)
+                {
+                    cout << "YOU WERE CAUGHT!\n";
+                    return;
+                }
+            }
+        }
+        else if(guardSymbol == '^')
         {
-            cout << "YOU WERE CAUGHT!" << endl;
-            return;
-        }
-    }
-}
-else if (guardSymbol == 'V')
-{
-    // Look down
-    for (int x = guardX + 1; x < 5; x++)
-    {
-        if (map[x][guardY] == '#' ||
-            (map[x][guardY] == 'D' && !doorOpen))
-            break;
+            for(int x = guardX - 1; x >= 0; x--)
+            {
+                if(map[x][guardY] == '#' ||
+                  (map[x][guardY] == 'D' && !doorOpen))
+                    break;
 
-        if (x == playerX && guardY == playerY)
+                if(x == playerX && guardY == playerY)
+                {
+                    cout << "YOU WERE CAUGHT!\n";
+                    return;
+                }
+            }
+        }
+        else if(guardSymbol == 'v')
         {
-            cout << "YOU WERE CAUGHT!" << endl;
-            return;
-        }
-    }
-}
-// STATIONARY GUARD VISION (faces right)
-for (int y = stillGuardY + 1; y < 8; y++)
-{
-    if (map[stillGuardX][y] == '#' ||
-        (map[stillGuardX][y] == 'D' && !doorOpen))
-    {
-        break;
-    }
+            for(int x = guardX + 1; x < 5; x++)
+            {
+                if(map[x][guardY] == '#' ||
+                  (map[x][guardY] == 'D' && !doorOpen))
+                    break;
 
-    if (stillGuardX == playerX && y == playerY)
-    {
-        cout << "YOU WERE CAUGHT!" << endl;
-        return;
-    }
-}
-    } 
-}
+                if(x == playerX && guardY == playerY)
+                {
+                    cout << "YOU WERE CAUGHT!\n";
+                    return;
+                }
+            }
+        }
+
+    } // while
+} // Level 1 
 
 // LEVEL 2: The Truth of the Weapon, DIFFERENT MAP! (Multiple Doors)
 void loadLevel2() 
@@ -1407,15 +1379,20 @@ struct Guard
     int col;
     int movement;
     char direction;
+    char previousTile;
+    bool rectangle;
 };
+//add to menu. requirement !!
+vector<string> customLevels;
+
 void playLevel(vector<string> map,
                int rows,
                int cols,
                vector<Door> doors,
                vector<Switch> switches,
                vector<Guard> guards);
+
 //LEVEL 6: CREATE YOUR OWN LEVEL, user creates their own level. 
-//ALL input must be validated 
 void loadCreateLevel(){
     string levelName;
     int rows;
@@ -1593,7 +1570,6 @@ for (int i = 0; i < rows; i++)
     }
 }
 
-
 // Save guards
 for (Guard g : guards)
 {
@@ -1624,10 +1600,28 @@ for (Switch s : switches)
          << s.col << endl;
 }
 
-    file.close();
+file.close();
 
-    cout << "Level saved as " << levelName << ".lvl\n";
-    break;
+cout << "Level saved as " << levelName << ".lvl\n";
+
+// Add created level to main menu
+bool exists = false;
+
+for (int i = 0; i < customLevels.size(); i++)
+{
+    if (customLevels[i] == levelName)
+    {
+        exists = true;
+        break;
+    }
+}
+
+if (!exists)
+{
+    customLevels.push_back(levelName);
+}
+
+break;
 }
 
     if (objectChoice == 8)
@@ -1799,7 +1793,7 @@ while (direction != 'W' &&
     else if (direction == 'D')
         map[row][col] = '>';
 
-guards.push_back({row, col, movement, direction});
+guards.push_back({row, col, movement, direction, ' '});
 
 break;
 }
@@ -1880,23 +1874,17 @@ break;
     } // while true
 } // loadCreateLevel
 
-//Level 7: LOAD CUSTOM LEVEL (LEVEL 6), made by user!
-void loadCustomLevel()
+// Level 7: LOAD CUSTOM LEVEL (LEVEL 6), made by user!
+void loadCustomLevel(string levelName)
 {
-    //variables
-    string levelName;
     int rows, cols;
 
-    cout << "Enter level name: ";
-    cin >> levelName;
+if(levelName.find(".lvl") == string::npos)
+{
+    levelName += ".lvl";
+}
 
-    // Allow user to type with or without .lvl
-    if(levelName.find(".lvl") == string::npos)
-    {
-        levelName += ".lvl";
-    }
 
-    //stream for file
     ifstream file(levelName);
 
     if (!file)
@@ -1905,11 +1893,12 @@ void loadCustomLevel()
         return;
     }
 
+
     file >> rows >> cols;
+
 
     vector<string> map(rows, string(cols, ' '));
 
-    // Store object information
     vector<Door> doors;
     vector<Switch> switches;
     vector<Guard> guards;
@@ -1917,55 +1906,59 @@ void loadCustomLevel()
 
     string object;
 
-    while (file >> object)
+
+    while(file >> object)
     {
         int row, col;
 
-        if (object == "Wall")
+
+        if(object == "Wall")
         {
             file >> row >> col;
             map[row][col] = '#';
         }
 
 
-        else if (object == "Player")
+        else if(object == "Player")
         {
             file >> row >> col;
             map[row][col] = '@';
         }
 
 
-        else if (object == "Goal")
+        else if(object == "Goal")
         {
             file >> row >> col;
             map[row][col] = '$';
         }
 
 
-        else if (object == "Guard")
+        else if(object == "Guard")
         {
             int movement;
             char direction;
 
             file >> movement >> direction >> row >> col;
 
-            if (direction == 'W')
+
+            if(direction == 'W')
                 map[row][col] = '^';
 
-            else if (direction == 'A')
+            else if(direction == 'A')
                 map[row][col] = '<';
 
-            else if (direction == 'S')
+            else if(direction == 'S')
                 map[row][col] = 'v';
 
-            else if (direction == 'D')
+            else if(direction == 'D')
                 map[row][col] = '>';
+
 
             guards.push_back({row, col, movement, direction});
         }
 
 
-        else if (object == "Door")
+        else if(object == "Door")
         {
             int group;
 
@@ -1977,7 +1970,7 @@ void loadCustomLevel()
         }
 
 
-        else if (object == "Switch")
+        else if(object == "Switch")
         {
             int group;
 
@@ -1988,19 +1981,35 @@ void loadCustomLevel()
             switches.push_back({row, col, group});
         }
     }
-
-
     file.close();
+
+    // Remove .lvl from the displayed name
     string displayName = levelName;
 
-    if(displayName.find(".lvl") != string::npos)
+    if (displayName.find(".lvl") != string::npos)
+    {
+        displayName = displayName.substr(0, displayName.find(".lvl"));
+        bool exists = false;
+
+for (int i = 0; i < customLevels.size(); i++)
 {
-    displayName = displayName.substr(0, displayName.find(".lvl"));
+    if (customLevels[i] == displayName)
+    {
+        exists = true;
+        break;
+    }
 }
 
- 
+if (!exists)
+{
+    customLevels.push_back(displayName);
+}
+    }
+
     cout << "\nLevel loaded successfully!\n";
-    cout << "\nLoaded Level: " << displayName << endl;
+    cout << "Loaded Level: " << displayName << endl;
+
+    // DISPLAY CREATED LEVEL
     cout << "  ";
 
     for (int j = 0; j < cols; j++)
@@ -2008,7 +2017,7 @@ void loadCustomLevel()
 
     cout << endl;
 
-
+    // Display rows
     for (int i = 0; i < rows; i++)
     {
         cout << i << " ";
@@ -2021,12 +2030,12 @@ void loadCustomLevel()
         cout << endl;
     }
 
-
-    // LOADS THE PLAYER MAP AFTER
-playLevel(map, rows, cols, doors, switches, guards);
+    // SEND CUSTOM LEVEL TO GAME
+    playLevel(map, rows, cols, doors, switches, guards);
 }
 
-//PLAYERS CUSTOM LEVEL SAVED.
+
+// PLAYERS CUSTOM LEVEL SAVED AND ABLE TO BE PLAYED
 void playLevel(vector<string> map,
                int rows,
                int cols,
@@ -2036,15 +2045,18 @@ void playLevel(vector<string> map,
 {
     cout << "Custom Level Loaded!\n";
 
-    // Find player
+
     int playerX = -1;
     int playerY = -1;
+    char playerPreviousTile = ' ';
 
-    for (int i = 0; i < rows; i++)
+
+    // Find player
+    for(int i = 0; i < rows; i++)
     {
-        for (int j = 0; j < cols; j++)
+        for(int j = 0; j < cols; j++)
         {
-            if (map[i][j] == '@')
+            if(map[i][j] == '@')
             {
                 playerX = i;
                 playerY = j;
@@ -2053,26 +2065,38 @@ void playLevel(vector<string> map,
         }
     }
 
-    if (playerX == -1)
+
+    if(playerX == -1)
     {
-        cout << "No player (@) found in this level.\n";
+        cout << "No player found.\n";
         return;
     }
+
+
+    // Initialize guard tiles
+    for(int i = 0; i < guards.size(); i++)
+    {
+        guards[i].previousTile = ' ';
+    }
+
 
     bool doorOpen = false;
     string input;
 
-    while (true)
+    while(true)
     {
-        // Print map
-        for (int i = 0; i < rows; i++)
+
+        // DISPLAY MAP
+        for(int i = 0; i < rows; i++)
         {
-            for (int j = 0; j < cols; j++)
+            for(int j = 0; j < cols; j++)
             {
-                if (i == playerX && j == playerY)
+                if(i == playerX && j == playerY)
                     cout << '@';
-                else if (map[i][j] == 'D' && doorOpen)
+
+                else if(map[i][j] == 'D' && doorOpen)
                     cout << ' ';
+
                 else
                     cout << map[i][j];
             }
@@ -2080,12 +2104,14 @@ void playLevel(vector<string> map,
             cout << endl;
         }
 
+
         cout << "Move (WASD) or inspect: ";
         cin >> input;
 
 
+
         // INSPECT
-        if (input == "inspect")
+        if(input == "inspect")
         {
             int row, col;
 
@@ -2095,53 +2121,54 @@ void playLevel(vector<string> map,
             cout << "Column: ";
             cin >> col;
 
-            if (row < 0 || row >= rows || col < 0 || col >= cols)
+
+            if(row < 0 || row >= rows ||
+               col < 0 || col >= cols)
             {
                 cout << "Invalid location.\n";
                 continue;
             }
 
-            if (map[row][col] == '#')
+
+            if(map[row][col] == '#')
                 cout << "Wall\n";
 
-            else if (map[row][col] == 'D')
+            else if(map[row][col] == 'D')
                 cout << (doorOpen ? "Open Door\n" : "Closed Door\n");
 
-            else if (map[row][col] == 'S')
+            else if(map[row][col] == 'S')
                 cout << "Switch\n";
 
-            else if (map[row][col] == '$')
+            else if(map[row][col] == '$')
                 cout << "Goal\n";
 
-            else if (map[row][col] == '^' ||
-                     map[row][col] == 'v' ||
-                     map[row][col] == '<' ||
-                     map[row][col] == '>')
+            else if(map[row][col] == '^' ||
+                    map[row][col] == 'v' ||
+                    map[row][col] == '<' ||
+                    map[row][col] == '>')
                 cout << "Guard\n";
 
-            else if (map[row][col] == ' ')
+            else
                 cout << "Empty\n";
 
-            else
-                cout << "Unknown object\n";
-                continue;
-        }
 
+            continue;
+        }
 
         int newX = playerX;
         int newY = playerY;
 
 
-        if (input == "w")
+        if(input == "w")
             newX--;
 
-        else if (input == "s")
+        else if(input == "s")
             newX++;
 
-        else if (input == "a")
+        else if(input == "a")
             newY--;
 
-        else if (input == "d")
+        else if(input == "d")
             newY++;
 
         else
@@ -2150,118 +2177,190 @@ void playLevel(vector<string> map,
             continue;
         }
 
-
-        // Boundary check
-        if (newX < 0 || newX >= rows ||
-            newY < 0 || newY >= cols)
+        // Boundary
+        if(newX < 0 || newX >= rows ||
+           newY < 0 || newY >= cols)
         {
             cout << "Can't move there.\n";
             continue;
         }
 
-
-        // Win
-        if (map[newX][newY] == '$')
+        // Hit guard
+        for(int i = 0; i < guards.size(); i++)
         {
-            cout << "YOU WIN!\n";
-            return;
+            if(newX == guards[i].row &&
+               newY == guards[i].col)
+            {
+                cout << "The guard caught you! GAME OVER!\n";
+                return;
+            }
         }
 
-
         // Wall
-        if (map[newX][newY] == '#')
+        if(map[newX][newY] == '#')
         {
             cout << "You hit a wall!\n";
             continue;
         }
 
-
         // Door
-        if (map[newX][newY] == 'D' && !doorOpen)
+        if(map[newX][newY] == 'D' && !doorOpen)
         {
             cout << "Door is closed!\n";
             continue;
         }
 
+        // WIN
+        if(map[newX][newY] == '$')
+        {
+            cout << "YOU WIN!\n";
+            return;
+        }
 
-        // Move player
+        // Save what player stepped on
+        playerPreviousTile = map[newX][newY];
+
+        map[playerX][playerY] = ' ';
+
         playerX = newX;
         playerY = newY;
-  
-// Move every guard
-for (int i = 0; i < guards.size(); i++)
+
+
+
+        // Switch toggle
+        if(playerPreviousTile == 'S')
+        {
+            doorOpen = !doorOpen;
+
+            if(doorOpen)
+                cout << "Door opened!\n";
+
+            else
+                cout << "Door closed!\n";
+        }
+
+
+
+        // MOVE GUARDS
+        for(int i = 0; i < guards.size(); i++)
+        {
+
+            int nextRow = guards[i].row;
+            int nextCol = guards[i].col;
+
+
+            if(guards[i].direction == 'W')
+                nextRow--;
+
+            else if(guards[i].direction == 'S')
+                nextRow++;
+
+            else if(guards[i].direction == 'A')
+                nextCol--;
+
+            else if(guards[i].direction == 'D')
+                nextCol++;
+
+
+
+            // blocked LOAD LEVEL & PLAY
+// blocked
+if(nextRow <= 0 || nextRow >= rows-1 ||
+   nextCol <= 0 || nextCol >= cols-1 ||
+   map[nextRow][nextCol] == '#' ||
+   map[nextRow][nextCol] == 'D')
 {
-    int nextRow = guards[i].row;
-    int nextCol = guards[i].col;
 
-
-    // Find next guard position
-    if (guards[i].direction == 'W')
-        nextRow--;
-
-    else if (guards[i].direction == 'S')
-        nextRow++;
-
-    else if (guards[i].direction == 'A')
-        nextCol--;
-
-    else if (guards[i].direction == 'D')
-        nextCol++;
-
-
-    // Check if guard can move
-    if(nextRow > 0 && nextRow < rows - 1 &&
-       nextCol > 0 && nextCol < cols - 1 &&
-       map[nextRow][nextCol] != '#' &&
-       map[nextRow][nextCol] != 'D' &&
-       map[nextRow][nextCol] != '$' &&
-       map[nextRow][nextCol] != 'S')
+    // Rectangle guard turns corners
+    if(guards[i].movement == 2)
     {
-        // erase old guard location
-        map[guards[i].row][guards[i].col] = ' ';
-
-        // update guard position
-        guards[i].row = nextRow;
-        guards[i].col = nextCol;
-    }
-    else
-    {
-        // Reverse direction if blocked
-        if (guards[i].direction == 'W')
+        if(guards[i].direction == 'D')
             guards[i].direction = 'S';
 
-        else if (guards[i].direction == 'S')
+        else if(guards[i].direction == 'S')
+            guards[i].direction = 'A';
+
+        else if(guards[i].direction == 'A')
             guards[i].direction = 'W';
 
-        else if (guards[i].direction == 'A')
+        else if(guards[i].direction == 'W')
+            guards[i].direction = 'D';
+    }
+
+    // Normal back and forth guard
+    else
+    {
+        if(guards[i].direction == 'W')
+            guards[i].direction = 'S';
+
+        else if(guards[i].direction == 'S')
+            guards[i].direction = 'W';
+
+        else if(guards[i].direction == 'A')
             guards[i].direction = 'D';
 
-        else if (guards[i].direction == 'D')
+        else if(guards[i].direction == 'D')
             guards[i].direction = 'A';
     }
 
-
-    // Draw guard again
-    if (guards[i].direction == 'W')
-        map[guards[i].row][guards[i].col] = '^';
-
-    else if (guards[i].direction == 'S')
-        map[guards[i].row][guards[i].col] = 'v';
-
-    else if (guards[i].direction == 'A')
-        map[guards[i].row][guards[i].col] = '<';
-
-    else if (guards[i].direction == 'D')
-        map[guards[i].row][guards[i].col] = '>';
 }
-        // Switch
-        if (map[playerX][playerY] == 'S')
-        {
-            doorOpen = true;
-            cout << "Door opened!\n";
-        }
+    else
+{
+    // Restore old tile
+    map[guards[i].row][guards[i].col] =
+        guards[i].previousTile;
+
+
+    // Save tile guard is stepping onto
+    guards[i].previousTile =
+        map[nextRow][nextCol];
+
+
+    // Move guard
+    guards[i].row = nextRow;
+    guards[i].col = nextCol;
+
+
+    // Guard steps on switch
+    if(guards[i].previousTile == 'S')
+    {
+        doorOpen = !doorOpen;
+
+        if(doorOpen)
+            cout << "Guard opened the door!\n";
+
+        else
+            cout << "Guard closed the door!\n";
     }
 }
+            // Draw guard
+            if(guards[i].direction == 'W')
+                map[guards[i].row][guards[i].col] = '^';
+
+            else if(guards[i].direction == 'S')
+                map[guards[i].row][guards[i].col] = 'v';
+
+            else if(guards[i].direction == 'A')
+                map[guards[i].row][guards[i].col] = '<';
+
+            else if(guards[i].direction == 'D')
+                map[guards[i].row][guards[i].col] = '>';
+
+
+
+            // Guard catches player
+            if(guards[i].row == playerX &&
+               guards[i].col == playerY)
+            {
+                cout << "The guard caught you! GAME OVER!\n";
+                return;
+            }
+
+        }
+
+    }
+}
+
 
 //Main menu with user input & loading the levels, play again added!
 int main()
@@ -2270,6 +2369,8 @@ int main()
  // play again button (NEW ADDITION/PEER)
 string choice;
 char playAgain = 'y';
+
+
 //main menu
 while (playAgain == 'y' || playAgain == 'Y')
 {
@@ -2283,6 +2384,10 @@ while (playAgain == 'y' || playAgain == 'Y')
     cout << "6) Create Level" << endl;
     cout << "7) Load Custom Level" << endl;
 
+for (int i = 0; i < customLevels.size(); i++)
+{
+    cout << i + 8 << ") " << customLevels[i] << endl;
+}
 
 getline(cin, choice);
  for (int i = 0; i < choice.length(); i++)
@@ -2314,12 +2419,37 @@ else if(choice == "5" || choice == "rectangle guard" || choice == "Rectangle Gua
 else if(choice == "6" || choice == "create level" || choice == "Create Level" ){
     loadCreateLevel();
 }
-else if(choice == "7" || choice == "load custom level" || choice == "Load Custom Level" ){
-    loadCustomLevel();
-}
-else 
+else if(choice == "7" ||
+        choice == "load custom level" ||
+        choice == "Load Custom Level")
 {
-    cout << "Invalid choice." << endl;
+    string name;
+
+    cout << "Enter level name: ";
+    cin >> name;
+    cin.ignore();
+
+    loadCustomLevel(name);
+}
+else
+{
+    bool found = false;
+
+    for (int i = 0; i < customLevels.size(); i++)
+    {
+        if (choice == to_string(i + 8) ||
+            choice == customLevels[i])
+        {
+            loadCustomLevel(customLevels[i]);
+            found = true;
+            break;
+        }
+    }
+
+    if (!found)
+    {
+        cout << "Invalid choice." << endl;
+    }
 }
  cout << "Would you like to play again? (y/n): ";
  cin >> playAgain;
